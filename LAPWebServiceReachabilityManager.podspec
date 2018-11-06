@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name               = "LAPWebServiceReachabilityManager"
-  s.version            = "0.1.0"
+  s.version            = "0.1.1"
   s.summary            = "A reachability observer for a web service."
   s.homepage           = "https://github.com/layered-pieces/LAPWebServiceReachabilityManager"
   s.license            = "MIT"
