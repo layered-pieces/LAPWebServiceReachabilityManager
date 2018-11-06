@@ -8,6 +8,8 @@
 
 #import "LAPWebServiceReachabilityManager.h"
 
+#import <UIKit/UIKit.h>
+
 @interface NSUUID (LAPWebServiceReachabilityManagerToken) <LAPWebServiceReachabilityManagerToken>
 
 @end
@@ -29,7 +31,7 @@
 {
     if (status != _status) {
         _status = status;
-        
+
         [self.observer enumerateKeysAndObjectsUsingBlock:^(NSUUID * _Nonnull key, void (^ _Nonnull obj)(LAPWebServiceReachabilityManager *, LAPWebServiceReachabilityStatus), BOOL * _Nonnull stop) {
             obj(self, status);
         }];
@@ -47,8 +49,13 @@
         _acceptableStatusCodes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 200)];
         _observer = [NSMutableDictionary dictionary];
 
+#if TARGET_OS_WATCH
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_stopMonitoring) name:NSExtensionHostDidEnterBackgroundNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_startMonitoring) name:NSExtensionHostWillEnterForegroundNotification object:nil];
+#else
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_stopMonitoring) name:UIApplicationDidEnterBackgroundNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_startMonitoring) name:UIApplicationWillEnterForegroundNotification object:nil];
+#endif
 
         [self _startMonitoring];
     }
@@ -69,7 +76,7 @@
     while (self.observer[token] != nil) {
         token = NSUUID.UUID;
     }
-    
+
     self.observer[token] = observer;
     return token;
 }
@@ -85,20 +92,20 @@
     NSURLSessionDataTask *task = [session dataTaskWithRequest:self.urlRequest
                                             completionHandler:^(NSData *_Nullable data, NSURLResponse *_Nullable response, NSError *_Nullable error) {
                                                 NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-                                                
+
                                                 dispatch_async(dispatch_get_main_queue(), ^{
                                                     if ([self.acceptableStatusCodes containsIndex:httpResponse.statusCode]) {
                                                         self.status = LAPWebServiceReachabilityStatusReachable;
                                                     } else {
                                                         self.status = LAPWebServiceReachabilityStatusNotReachable;
                                                     }
-                                                    
+
                                                     if (completionHandler) {
                                                         completionHandler(self, self.status);
                                                     }
                                                 });
                                             }];
-    
+
     [task resume];
 }
 
@@ -108,7 +115,7 @@
 {
     assert(NSThread.currentThread.isMainThread);
     assert(self.timer == nil);
-    
+
     self.timer = [NSTimer scheduledTimerWithTimeInterval:self.timeInterval target:self selector:@selector(_checkReachability) userInfo:nil repeats:YES];
     [self checkReachabilityWithCompletionHandler:nil];
 }

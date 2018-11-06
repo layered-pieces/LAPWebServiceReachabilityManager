@@ -14,9 +14,9 @@ Pod::Spec.new do |s|
   s.license            = "MIT"
   s.author             = { "Oliver Letterer" => "oliver.letterer@gmail.com" }
   s.social_media_url   = "https://twitter.com/OliverLetterer"
-  s.platform           = :ios, "9.0"
   s.source             = { :git => "https://github.com/layered-pieces/LAPWebServiceReachabilityManager.git", :tag => "#{s.version}" }
   s.requires_arc       = true
+  s.platforms          = { :ios => '9.0', :tvos => '9.0', :watchos => '2.0' }
 
   s.source_files = 'LAPWebServiceReachabilityManager'
 end
